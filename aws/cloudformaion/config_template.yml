@@ -206,6 +206,12 @@ Resources:
               - 'elasticmapreduce:GetAutoTerminationPolicy'
             Resource:
               - !Join [':', ['arn:aws:elasticmapreduce:*', !Ref 'AWS::AccountId', 'cluster/*']]
+          - Effect: Allow
+            Action:
+              - 'ebs:ListSnapshotBlocks'
+              - 'ebs:ListChangedBlocks'
+            Resource:
+              - !Join [':', ['arn:aws:ec2:*', !Ref 'AWS::AccountId', 'snapshot/*']]
   #  feature: event-driven IAC
   S3NotificationsPermissions:
     Type: 'AWS::IAM::ManagedPolicy'
