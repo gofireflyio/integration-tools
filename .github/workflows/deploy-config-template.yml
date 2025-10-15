@@ -1,0 +1,96 @@
+name: Upload Config Template to S3
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'aws/cloudformation/config_template.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  upload-to-s3:
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.CI_ACCOUNT_ID }}:role/prod-github-actions-oidc
+          role-session-name: runner
+          aws-region: ${{ secrets.CI_REGION }}
+
+      - name: Backup existing config_template.yml
+        id: backup
+        run: |
+          set -e
+          BUCKET_NAME="infralight-templates-public"
+          FILE_NAME="config_template.yml"
+          TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+          BACKUP_FILE="config_template.yml.backup_${TIMESTAMP}"
+
+          if aws s3 ls "s3://$BUCKET_NAME/$FILE_NAME" > /dev/null 2>&1; then
+            echo "Backing up existing file to $BACKUP_FILE"
+            aws s3 mv "s3://$BUCKET_NAME/$FILE_NAME" "s3://$BUCKET_NAME/$BACKUP_FILE"
+          else
+            echo "No existing file found, skipping backup."
+            BACKUP_FILE="None"
+          fi
+
+          # Export as environment variable and step output
+          echo "BACKUP_FILE=$BACKUP_FILE" >> $GITHUB_ENV
+          echo "backup_file=$BACKUP_FILE" >> $GITHUB_OUTPUT
+
+      - name: Upload new config_template.yml to S3
+        id: upload
+        run: |
+          set -e
+          BUCKET_NAME="infralight-templates-public"
+          FILE_NAME="config_template.yml"
+
+          aws s3 cp aws/cloudformation/config_template.yml "s3://$BUCKET_NAME/$FILE_NAME"
+
+          echo "S3_FILE=https://$BUCKET_NAME.s3.amazonaws.com/$FILE_NAME" >> $GITHUB_ENV
+          echo "s3_file=https://$BUCKET_NAME.s3.amazonaws.com/$FILE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Post a message in Slack
+        if: success()
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.CI_TEST_SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            text: "*AWS Account Integration Template Update*: ${{ job.status }}"
+            blocks:
+              - type: "header"
+                text:
+                  type: "plain_text"
+                  text: "📦 AWS Account Integration Template Update"
+                  emoji: true
+              - type: "section"
+                fields:
+                  - type: "mrkdwn"
+                    text: "*Status:*\n✅ Success"
+                  - type: "mrkdwn"
+                    text: "*S3 File:*\n${{ steps.upload.outputs.s3_file }}"
+              - type: "section"
+                fields:
+                  - type: "mrkdwn"
+                    text: "*File:*\n`config_template.yml`"
+                  - type: "mrkdwn"
+                    text: "*Backup:*\n`${{ steps.backup.outputs.backup_file }}`"
+              - type: "section"
+                text:
+                  type: "mrkdwn"
+                  text: "*Commit:*\n<${{ github.event.head_commit.url }}|View Commit>"
+              - type: "context"
+                elements:
+                  - type: "mrkdwn"
+                    text: "Triggered by GitHub Actions"
