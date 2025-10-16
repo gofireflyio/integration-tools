@@ -55,9 +55,9 @@ jobs:
           BUCKET_NAME="infralight-templates-public"
           FILE_NAME="config_template.yml"
 
-          aws s3 cp aws/cloudformation/config_template.yml "s3://$BUCKET_NAME/$FILE_NAME"
+          aws s3 cp aws/cloudformation/config_template.yml "s3://$BUCKET_NAME/$FILE_NAME" --acl public-read
 
-          echo "S3_FILE=https://$BUCKET_NAME.s3.amazonaws.com/$FILE_NAME" >> $GITHUB_ENV
+          echo "S3_FILE=https://$BUCKET_NAME.s3.amazonaws.com/$FILE_NAME"  >> $GITHUB_ENV
           echo "s3_file=https://$BUCKET_NAME.s3.amazonaws.com/$FILE_NAME" >> $GITHUB_OUTPUT
 
       - name: Post a message in Slack
