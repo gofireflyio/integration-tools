@@ -211,7 +211,7 @@ Resources:
               - 'ebs:ListSnapshotBlocks'
               - 'ebs:ListChangedBlocks'
             Resource:
-              - !Join [':', ['arn:aws:ec2:*', !Ref 'AWS::AccountId', 'snapshot/*']]
+              - 'arn:aws:ec2:*::snapshot/*'
   #  feature: event-driven IAC
   S3NotificationsPermissions:
     Type: 'AWS::IAM::ManagedPolicy'
