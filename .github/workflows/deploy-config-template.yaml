@@ -32,11 +32,12 @@ jobs:
 
       - name: Prepare config template with organization ID
         run: |
-          sed -i 's/organizationID: placeholder/organizationID: "${{ vars.CI_ACCOUNT_ID }}"/' aws/cloudformation/config_template.yml
-          sed -i 's/us-east-1/${{ vars.CI_REGION }}/' aws/cloudformation/config_template.yml
-          echo "Updated organizationID to ${{ vars.CI_ACCOUNT_ID }} for environment ${{ inputs.environment }}"
+          sed -i 's/organizationID: placeholder/organizationID: "${{ secrets.CI_ACCOUNT_ID }}"/' aws/cloudformation/config_template.yml
+          sed -i 's/us-east-1/${{ secrets.CI_REGION }}/' aws/cloudformation/config_template.yml
+          echo "Updated organizationID to ${{ secrets.CI_ACCOUNT_ID }} for environment ${{ inputs.environment }}"
+          echo "Updated region to ${{ secrets.CI_REGION }}"
           grep organizationID aws/cloudformation/config_template.yml
-          grep region aws/cloudformation/config_template.yml
+          grep 'arn:aws:events' aws/cloudformation/config_template.yml
 
       - name: Backup existing config_template.yml
         id: backup
@@ -94,7 +95,7 @@ jobs:
               - type: "section"
                 fields:
                   - type: "mrkdwn"
-                    text: "*Organization ID:*\n`${{ vars.CI_ACCOUNT_ID }}`"
+                    text: "*Organization ID:*\n`${{ secrets.CI_ACCOUNT_ID }}`"
                   - type: "mrkdwn"
                     text: "*S3 File:*\n${{ steps.upload.outputs.s3_file }}"
               - type: "section"
