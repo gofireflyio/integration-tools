@@ -1,4 +1,5 @@
-name: ${{{ inputs.environment }}} - Upload Config Template to S3
+name: Upload Config Template to S3
+run-name: ${{ inputs.environment }} - Upload Config Template to S3
 
 on:
   workflow_dispatch:
