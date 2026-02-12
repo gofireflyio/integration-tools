@@ -3,7 +3,7 @@ Description: Firefly AWS Integration
 Mappings:
   FireflyEnvironment:
     env:
-      organizationID: "094724549126"
+      organizationID: placeholder
       SnsNameForConfirmCustomerDeployment: "handle-customer-actions"
 Metadata:
   'AWS::CloudFormation::Interface':

@@ -1,7 +1,16 @@
 name: Upload Config Template to S3
 
 on:
-  push:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: 'Environment name.'
+        required: true
+        options:
+          - 'prod'
+          - 'prod-eu'
+        default: 'prod'
     branches:
       - main
     paths:
@@ -14,11 +23,17 @@ permissions:
 jobs:
   upload-to-s3:
     runs-on: ubuntu-latest
-    environment: prod
+    environment: ${{ inputs.environment }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Prepare config template with organization ID
+        run: |
+          sed -i 's/organizationID: placeholder/organizationID: "${{ secrets.CI_ACCOUNT_ID }}"/' aws/cloudformation/config_template.yml
+          echo "Updated organizationID to ${{ secrets.CI_ACCOUNT_ID }} for environment ${{ inputs.environment }}"
+          grep organizationID aws/cloudformation/config_template.yml
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -67,17 +82,23 @@ jobs:
           webhook: ${{ secrets.CI_TEST_SLACK_WEBHOOK }}
           webhook-type: incoming-webhook
           payload: |
-            text: "*AWS Account Integration Template Update*: ${{ job.status }}"
+            text: "*AWS Account Integration Template Update (${{ inputs.environment }})*: ${{ job.status }}"
             blocks:
               - type: "header"
                 text:
                   type: "plain_text"
-                  text: "📦 AWS Account Integration Template Update"
+                  text: "📦 AWS Account Integration Template Update (${{ inputs.environment }})"
                   emoji: true
               - type: "section"
                 fields:
                   - type: "mrkdwn"
                     text: "*Status:*\n✅ Success"
+                  - type: "mrkdwn"
+                    text: "*Environment:*\n`${{ inputs.environment }}`"
+              - type: "section"
+                fields:
+                  - type: "mrkdwn"
+                    text: "*Organization ID:*\n`${{ secrets.CI_ACCOUNT_ID }}`"
                   - type: "mrkdwn"
                     text: "*S3 File:*\n${{ steps.upload.outputs.s3_file }}"
               - type: "section"
