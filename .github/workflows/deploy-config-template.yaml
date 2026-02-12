@@ -1,4 +1,4 @@
-name: Upload Config Template to S3
+name: ${{{ inputs.environment }}} - Upload Config Template to S3
 
 on:
   workflow_dispatch:
@@ -32,15 +32,10 @@ jobs:
       - name: Prepare config template with organization ID
         run: |
           sed -i 's/organizationID: placeholder/organizationID: "${{ secrets.CI_ACCOUNT_ID }}"/' aws/cloudformation/config_template.yml
+          sed -i 's/us-east-1/${{ secrets.CI_REGION }}/' aws/cloudformation/config_template.yml
           echo "Updated organizationID to ${{ secrets.CI_ACCOUNT_ID }} for environment ${{ inputs.environment }}"
           grep organizationID aws/cloudformation/config_template.yml
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.CI_ACCOUNT_ID }}:role/${{ inputs.environment }}-github-actions-oidc
-          role-session-name: runner
-          aws-region: ${{ secrets.CI_REGION }}
+          grep region aws/cloudformation/config_template.yml
 
       - name: Backup existing config_template.yml
         id: backup
