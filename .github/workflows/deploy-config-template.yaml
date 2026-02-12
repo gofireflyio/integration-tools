@@ -30,6 +30,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.CI_ACCOUNT_ID }}:role/${{ inputs.environment }}-github-actions-oidc
+          role-session-name: runner
+          aws-region: ${{ secrets.CI_REGION }}
+
       - name: Prepare config template with organization ID
         run: |
           sed -i 's/organizationID: placeholder/organizationID: "${{ secrets.CI_ACCOUNT_ID }}"/' aws/cloudformation/config_template.yml
