@@ -33,7 +33,7 @@ jobs:
       - name: Prepare config template with organization ID
         run: |
           sed -i 's/organizationID: placeholder/organizationID: "${{ vars.CI_ACCOUNT_ID }}"/' aws/cloudformation/config_template.yml
-          sed -i 's/us-east-1/${{ secrets.CI_REGION }}/' aws/cloudformation/config_template.yml
+          sed -i 's/us-east-1/${{ vars.CI_REGION }}/' aws/cloudformation/config_template.yml
           echo "Updated organizationID to ${{ vars.CI_ACCOUNT_ID }} for environment ${{ inputs.environment }}"
           grep organizationID aws/cloudformation/config_template.yml
           grep region aws/cloudformation/config_template.yml
