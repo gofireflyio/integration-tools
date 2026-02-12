@@ -46,7 +46,7 @@ jobs:
         id: backup
         run: |
           set -e
-          BUCKET_NAME="infralight-templates-public"
+          BUCKET_NAME=${{ secrets.CI_BUCKET_NAME }}
           FILE_NAME="config_template.yml"
           TIMESTAMP=$(date +"%Y%m%d%H%M%S")
           BACKUP_FILE="config_template.yml.backup_${TIMESTAMP}"
@@ -67,7 +67,7 @@ jobs:
         id: upload
         run: |
           set -e
-          BUCKET_NAME="infralight-templates-public"
+          BUCKET_NAME=${{ secrets.CI_BUCKET_NAME }}
           FILE_NAME="config_template.yml"
 
           aws s3 cp aws/cloudformation/config_template.yml "s3://$BUCKET_NAME/$FILE_NAME" --acl public-read
