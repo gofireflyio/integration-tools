@@ -3,7 +3,6 @@ Description: Firefly AWS Integration
 Mappings:
   FireflyEnvironment:
     env:
-      organizationID: placeholder
       SnsNameForConfirmCustomerDeployment: "handle-customer-actions"
 Metadata:
   'AWS::CloudFormation::Interface':
@@ -12,9 +11,15 @@ Metadata:
           default: "Unique External ID for Firefly Integration"
         Parameters:
           - ExternalID
+          - OrganizationID
+          - Region
     ParameterLabels:
       ExternalID:
         default: "ExternalID"
+      OrganizationID:
+        default: "OrganizationID"
+      Region:
+        default: "Region"
 Parameters:
   ExternalID:
     Description: >-
@@ -25,6 +30,24 @@ Parameters:
     MaxLength: '1224'
     AllowedPattern: '[\w+=,.@:\/-]*'
     ConstraintDescription: 'Invalid ExternalID value.  Must match pattern [\w+=,.@:\/-]*'
+  OrganizationID:
+    Description: Firefly AWS Organization Account ID
+    Type: String
+    Default: "094724549126"
+    AllowedPattern: '[0-9]{12}'
+    ConstraintDescription: Must be a 12-digit AWS account ID
+  Region:
+    Description: AWS Region
+    Type: String
+    Default: "us-east-1"
+    AllowedPattern: '[a-zA-Z]{2}-[a-zA-Z]{4,9}-[1-5]'
+    ConstraintDescription: Must be a valid AWS region code
+  EventBusARN:
+    Description: Firefly Event Bus ARN
+    Type: String
+    Default: "arn:aws:events:us-east-1:094724549126:event-bus/prod-stablefly-event-bus"
+    AllowedPattern: '[a-zA-Z0-9:/_-]*'
+    ConstraintDescription: Must be a valid AWS Event Bus ARN
 Conditions: {}
 Resources:
   #   required
@@ -234,7 +257,7 @@ Resources:
             Action:
               - 'events:PutEvents'
             Resource:
-              - !Join [ ':', [ 'arn:aws:events:us-east-1', !FindInMap [ FireflyEnvironment, env, organizationID ], 'event-bus/prod-stablefly-event-bus' ] ]
+              - !Ref EventBusARN
 
   InvokeFireflyEventBusRole:
     Type: 'AWS::IAM::Role'
@@ -301,10 +324,7 @@ Resources:
               AWS: !Join
                 - ''
                 - - 'arn:aws:iam::'
-                  - !FindInMap
-                    - FireflyEnvironment
-                    - env
-                    - organizationID
+                  - !Ref OrganizationID
                   - ':root'
             Condition:
               StringEquals:
