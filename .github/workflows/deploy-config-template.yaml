@@ -37,15 +37,6 @@ jobs:
           role-session-name: runner
           aws-region: ${{ secrets.CI_REGION }}
 
-      - name: Prepare config template with organization ID
-        run: |
-          sed -i 's/organizationID: placeholder/organizationID: "${{ secrets.CI_ACCOUNT_ID }}"/' aws/cloudformation/config_template.yml
-          sed -i 's/us-east-1/${{ secrets.CI_REGION }}/' aws/cloudformation/config_template.yml
-          echo "Updated organizationID to ${{ secrets.CI_ACCOUNT_ID }} for environment ${{ inputs.environment }}"
-          echo "Updated region to ${{ secrets.CI_REGION }}"
-          grep organizationID aws/cloudformation/config_template.yml
-          grep 'arn:aws:events' aws/cloudformation/config_template.yml
-
       - name: Backup existing config_template.yml
         id: backup
         run: |
