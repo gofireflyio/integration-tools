@@ -235,7 +235,7 @@ Resources:
               - 'ebs:ListChangedBlocks'
             Resource:
               - 'arn:aws:ec2:*::snapshot/*'
-  #  feature: event-driven IAC
+  #   feature: event-driven IAC
   S3NotificationsPermissions:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:     
